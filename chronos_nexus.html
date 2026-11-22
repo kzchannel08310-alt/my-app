@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CHRONOS NEXUS - 時空群像劇アドベンチャー</title>
+<!-- Tailwind CSS & Google Fonts & FontAwesome -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #090d16;
+    color: #e2e8f0;
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.08), transparent 30%),
+      radial-gradient(circle at 85% 70%, rgba(245, 185, 66, 0.08), transparent 30%);
+    overflow-x: hidden;
+  }
+  .font-serif-jp {
+    font-family: 'Noto Serif JP', serif;
+  }
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+  .glass-panel {
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 65, 85, 0.75);
+  }
+  .era-card {
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .era-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245, 185, 66, 0.65);
+    box-shadow: 0 12px 24px -8px rgba(14, 165, 233, 0.2);
+  }
+  .choice-btn {
+    transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  }
+  .choice-btn:hover:not(:disabled) {
+    transform: translateX(4px);
+    border-color: #38bdf8;
+    background-color: rgba(30, 41, 59, 0.95);
+  }
+  .typing-cursor::after {
+    content: '▋';
+    animation: blinkCursor 1s step-start infinite;
+    color: #38bdf8;
+    margin-left: 2px;
+  }
+  @keyframes blinkCursor {
+    50% { opacity: 0; }
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+
+  <!-- トースト通知コンテナ -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-[70] flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
+
+  <!-- 共通ヘッダー -->
+  <header class="sticky top-0 z-30 glass-panel border-b border-slate-700/80 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-2.5">
+      <button type="button" id="btnBackTitle" onclick="requestReturnToTitle()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-amber-400 text-slate-200 hover:text-amber-300 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-arrow-left"></i> <span>タイトルへ戻る</span>
+      </button>
+      <span class="font-cinzel font-bold text-amber-400 tracking-wider text-sm sm:text-base">CHRONOS NEXUS</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button type="button" onclick="openSaveLoadModal('save')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-floppy-disk"></i> <span>セーブ</span>
+      </button>
+      <button type="button" onclick="openSaveLoadModal('load')" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-sky-500/40 text-sky-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-folder-open"></i> <span>ロード</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 1. タイトル＆時代選択画面 ==================== -->
+  <main id="screenTitle" class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col">
+    <section class="text-center mb-8">
+      <div class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-300 text-xs font-bold tracking-widest uppercase mb-2">
+        CHRONICLE OF EIGHT ERAS &amp; FINAL NEXUS
+      </div>
+      <h1 class="font-cinzel text-3xl sm:text-5xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-sky-400 mb-3">
+        CHRONOS NEXUS
+      </h1>
+      <p class="font-serif-jp text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+        8つの時代を生き抜いた英雄たちが時空の狭間に集結し、すべての悲劇を操る元凶『虚無の織手』へ挑む選択分岐型テキストアドベンチャー。
+      </p>
+
+      <div class="mt-5 flex flex-wrap justify-center items-center gap-3">
+        <div class="px-4 py-2 rounded-xl glass-panel text-xs sm:text-sm flex items-center gap-2">
+          <span class="text-slate-400">踏破状況:</span>
+          <strong id="clearedCountText" class="text-sky-400 font-bold">0 / 8 時代クリア</strong>
+        </div>
+        <button type="button" onclick="openSaveLoadModal('load')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-sky-500/50 text-sky-300 font-bold text-xs sm:text-sm flex items-center gap-2 transition cursor-pointer">
+          <i class="fa-solid fa-rotate-left"></i> 続きから遊ぶ（ロード）
+        </button>
+        <button type="button" onclick="toggleTypewriterSetting()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs sm:text-sm flex items-center gap-2 transition cursor-pointer">
+          <i class="fa-solid fa-keyboard"></i> 文字送り: <span id="typewriterLabel" class="text-amber-400 font-bold">ON</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 8つの時代カード一覧 -->
+    <section class="mb-8">
+      <h2 class="font-serif-jp text-lg sm:text-xl font-bold text-amber-400 mb-4 pb-2 border-b border-slate-800 flex items-center gap-2">
+        <i class="fa-solid fa-compass"></i> 時代を選択して物語を始める
+      </h2>
+      <div id="eraGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+    </section>
+
+    <!-- 最終編バナー -->
+    <section class="mt-auto">
+      <div id="finalBanner" class="glass-panel rounded-2xl p-5 sm:p-6 border-2 border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 transition-all">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span id="finalStatusBadge" class="px-2.5 py-0.5 rounded bg-red-950/80 border border-red-500/50 text-red-400 text-xs font-bold">
+              <i class="fa-solid fa-lock"></i> 未解放
+            </span>
+            <span class="text-xs font-bold text-amber-400 tracking-wider">FINAL CHAPTER</span>
+          </div>
+          <h3 class="font-serif-jp text-xl sm:text-2xl font-bold text-white mb-1">
+            最終編：終焉の城（クロノス・ネクサス）
+          </h3>
+          <p id="finalBannerDesc" class="text-xs sm:text-sm text-slate-300">
+            全8時代をクリアすると挑戦可能。メイン主人公1人と同行仲間3人を選び、残り4人の別視点パートも交えながら全員の力で元凶『虚無の織手』を撃破せよ！
+          </p>
+        </div>
+        <button type="button" id="btnOpenFinalSetup" onclick="openPartySelectScreen()" disabled class="w-full md:w-auto px-6 py-3.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-not-allowed transition shrink-0">
+          <i class="fa-solid fa-crown"></i> 最終編の準備へ
+        </button>
+      </div>
+
+      <div class="mt-4 flex flex-wrap justify-end gap-4 text-xs text-slate-500">
+        <button type="button" onclick="unlockAllErasForTest()" class="hover:text-amber-400 underline transition cursor-pointer">
+          [テスト用] 全8時代クリア状態を解放する
+        </button>
+        <button type="button" onclick="resetClearedProgress()" class="hover:text-rose-400 underline transition cursor-pointer">
+          [初期化] クリア履歴をリセット
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== 2. 最終編：メイン主人公1人＋同行仲間3人 編成画面 ==================== -->
+  <section id="screenPartySelect" class="hidden flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
+    <div class="text-center mb-6">
+      <span class="text-xs font-bold text-amber-400 tracking-widest uppercase">FINAL CHAPTER PARTY SETUP</span>
+      <h2 class="font-serif-jp text-2xl sm:text-3xl font-bold text-white mt-1 mb-2">
+        <span class="text-amber-400">メイン主人公 1人</span> と <span class="text-sky-400">同行仲間 3人</span> を選択
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto">
+        選んだメイン主人公1人と同行仲間3人が中心となり、残り4人の別視点パートも交えながら戦い抜き、最後は8人全員の力で元凶を倒します。
+      </p>
+    </div>
+
+    <div class="glass-panel rounded-xl p-4 mb-6 border border-amber-500/30 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-bold text-amber-400">★ メイン主人公 (<span id="partyMainCount">0</span>/1):</span>
+          <span id="partyMainDisplay" class="text-slate-400">未選択</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-bold text-sky-400">◆ 同行仲間 (<span id="partyAllyCount">0</span>/3):</span>
+          <span id="partyAllyDisplay" class="text-slate-400">未選択</span>
+        </div>
+      </div>
+      <div class="pt-2.5 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="text-xs text-purple-300">
+          ○ それ以外の4人（別視点パート担当）: <span id="partyOthersDisplay" class="font-bold">8人から4人が割り当てられます</span>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" onclick="clearPartySelection()" class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer">
+            選択クリア
+          </button>
+          <button type="button" id="btnStartFinalChapter" onclick="startFinalChapter()" disabled class="px-6 py-2 rounded-lg bg-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed transition">
+            最終編を開始する
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="partySelectGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+  </section>
+
+  <!-- ==================== 3. ゲームプレイ画面 ==================== -->
+  <section id="screenGame" class="hidden flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+      <!-- 左側：物語＆選択肢（8カラム） -->
+      <div class="lg:col-span-8 flex flex-col gap-4">
+        <div onclick="finishTypewriterNow()" class="glass-panel rounded-2xl p-5 sm:p-7 min-h-[270px] sm:min-h-[330px] flex flex-col justify-between relative cursor-pointer shadow-xl border border-slate-700/80">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="turnBadge" class="px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/50 text-sky-300 font-bold text-xs sm:text-sm">
+                第1ターン
+              </span>
+              <span id="phaseLabel" class="text-xs sm:text-sm font-bold text-amber-400">
+                穏やかな日常
+              </span>
+            </div>
+            <span id="locationLabel" class="text-xs text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-location-dot text-sky-400"></i>
+              <span id="locationText">アトランティス・下層工房</span>
+            </span>
+          </div>
+
+          <div id="storyTextContainer" class="font-serif-jp text-base sm:text-lg leading-loose text-slate-100 whitespace-pre-line flex-1"></div>
+
+          <!-- ローディングオーバーレイ -->
+          <div id="storyLoadingOverlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-20 p-6 text-center">
+            <div class="w-11 h-11 border-4 border-sky-500/30 border-t-amber-400 rounded-full animate-spin mb-3"></div>
+            <p class="font-serif-jp text-amber-300 font-bold text-sm sm:text-base mb-1">運命の糸を紡いでいます...</p>
+            <p class="text-xs text-slate-400 mb-4">選択と状況に応じた展開を構築中</p>
+            <button type="button" onclick="event.stopPropagation(); abortTurnGenerationManually();" class="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold transition cursor-pointer">
+              生成を中断する
+            </button>
+          </div>
+
+          <div class="mt-4 pt-2 border-t border-slate-800/70 flex items-center justify-between text-[11px] text-slate-500 gap-2">
+            <span>クリックで全文を即時表示</span>
+            <span id="lastChoiceNote" class="text-amber-400/80 truncate max-w-[65%]"></span>
+          </div>
+        </div>
+
+        <!-- 選択肢3つ ＋ 4番目の自由記入 -->
+        <div id="actionPanel" class="glass-panel rounded-2xl p-4 sm:p-5 border border-slate-700/80">
+          <div id="choicesList" class="flex flex-col gap-2.5 mb-4"></div>
+
+          <div id="customActionBox" class="pt-3 border-t border-slate-800">
+            <label for="customActionInput" class="block text-xs font-bold text-sky-400 mb-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-sky-500/20 border border-sky-500/40 text-[10px] mr-1">自由記入</span>
+              4番目の選択肢：好きな行動・セリフ・策を入力
+            </label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="customActionInput" placeholder="例：近くの人に世間話を振る / 周囲の様子を確かめる..."
+                class="flex-1 bg-slate-950/90 border border-slate-600 focus:border-sky-400 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none"
+                onkeydown="if (event.key === 'Enter') submitCustomAction()" />
+              <button type="button" id="btnCustomSubmit" onclick="submitCustomAction()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-paper-plane"></i> <span>この行動で進む</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="chapterClearBox" class="hidden text-center py-4">
+            <h3 id="clearHeading" class="font-serif-jp text-xl sm:text-2xl font-bold text-amber-300 mb-2">
+              物語を完遂した！
+            </h3>
+            <p id="clearDescription" class="text-xs sm:text-sm text-slate-300 mb-5">
+              タイトル画面へ戻り、次の時代または最終編へ進みましょう。
+            </p>
+            <button type="button" onclick="completeChapterAndReturnTitle()" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base inline-flex items-center gap-2 shadow-lg transition cursor-pointer">
+              <i class="fa-solid fa-arrow-left"></i> <span>タイトル画面へ戻る</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右側：ステータス＆選択履歴（4カラム） -->
+      <aside class="lg:col-span-4 flex flex-col gap-4">
+        <div class="glass-panel rounded-2xl p-4 border border-slate-700/80">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">現在の視点</span>
+            <span id="sideEraName" class="text-xs font-bold text-sky-400">超古代文明</span>
+          </div>
+          <div id="sideHeroName" class="font-serif-jp font-bold text-base text-white">レオン・アルカディア</div>
+          <div id="sideHeroRole" class="text-xs text-slate-400 mb-3">星霊魔導技師</div>
+
+          <div class="space-y-2.5 text-xs">
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">精神・気力</span>
+                <span id="statMoraleVal" class="font-bold text-emerald-400">85</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="statMoraleBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width:85%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">仲間との絆</span>
+                <span id="statBondVal" class="font-bold text-amber-400">50</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="statBondBar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-300" style="width:50%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="text-slate-300">状況緊迫度</span>
+                <span id="statTensionVal" class="font-bold text-rose-400">15</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="statTensionBar" class="h-full bg-gradient-to-r from-rose-500 to-orange-400 transition-all duration-300" style="width:15%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最終編パーティ構成表示 -->
+          <div id="finalRosterBox" class="hidden mt-4 pt-3 border-t border-slate-800 space-y-2 text-xs">
+            <div>
+              <span class="text-amber-400 font-bold">メイン主人公:</span>
+              <span id="rosterMainText" class="text-slate-200 ml-1"></span>
+            </div>
+            <div>
+              <span class="text-sky-400 font-bold">同行仲間:</span>
+              <span id="rosterAlliesText" class="text-slate-200 ml-1"></span>
+            </div>
+            <div>
+              <span class="text-purple-300 font-bold">別視点4人 (<span id="subPerspectiveCounter">0/30</span>):</span>
+              <span id="rosterOthersText" class="text-slate-300 ml-1"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 border border-slate-700/80 flex flex-col max-h-[360px]">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">選択の軌跡</span>
+            <span id="historyCountLabel" class="text-[11px] text-slate-500">0件</span>
+          </div>
+          <div id="historyLogList" class="overflow-y-auto space-y-2 pr-1 text-xs flex-1">
+            <div class="text-slate-500 italic text-center py-6">行動を選ぶと履歴が記録されます</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ==================== モーダル：セーブ＆ロード ==================== -->
+  <div id="modalSaveLoad" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-2xl w-full p-5 sm:p-6 border border-slate-600 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-700">
+        <h3 id="saveLoadModalTitle" class="font-serif-jp text-lg sm:text-xl font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> セーブ＆ロード
+        </h3>
+        <button type="button" onclick="closeSaveLoadModal()" class="text-slate-400 hover:text-white text-lg px-2 cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="saveSlotsContainer" class="space-y-3 mb-6"></div>
+
+      <div class="pt-4 border-t border-slate-700">
+        <div class="text-xs font-bold text-sky-400 mb-2">
+          <i class="fa-solid fa-file-export mr-1"></i> JSONテキスト エクスポート / インポート（引き継ぎ用）
+        </div>
+        <textarea id="jsonTransferArea" rows="3" placeholder="JSONデータをここに書き出し、または貼り付けて復元できます。" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300 font-mono mb-2 focus:outline-none focus:border-sky-500"></textarea>
+        <div class="flex flex-wrap gap-2 justify-end">
+          <button type="button" onclick="exportSaveToJson()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 cursor-pointer">
+            現在データをJSON出力
+          </button>
+          <button type="button" onclick="copySaveJson()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-sky-300 cursor-pointer">
+            コピー
+          </button>
+          <button type="button" onclick="importSaveFromJson()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs cursor-pointer">
+            JSONからインポート
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== モーダル：タイトルへ戻る確認 ==================== -->
+  <div id="modalBackConfirm" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 border border-slate-600 shadow-2xl">
+      <h4 class="font-serif-jp font-bold text-lg text-amber-300 mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-circle-question"></i> タイトル画面へ戻りますか？
+      </h4>
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
+        進行中の通信や文字送り演出は即座に停止し、タイトル画面へ戻ります。必要に応じてセーブ画面から保存してから戻れます。
+      </p>
+      <div class="flex flex-col gap-2.5">
+        <button type="button" onclick="closeBackConfirmModal(); openSaveLoadModal('save', true);" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-floppy-disk"></i> セーブしてから戻る
+        </button>
+        <button type="button" onclick="forceReturnToTitle()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-rose-950/80 border border-slate-600 hover:border-rose-500/60 text-slate-200 hover:text-rose-200 font-bold text-sm flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> 保存せずタイトルへ戻る
+        </button>
+        <button type="button" onclick="closeBackConfirmModal()" class="w-full py-2 px-4 rounded-xl text-slate-400 hover:text-slate-200 text-xs font-bold cursor-pointer">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ============================================================================
+// 1. 全8時代データ（序盤は穏やかな日常スタート＆メタ解説文言なし）
+// ============================================================================
+const ERAS = [
+  {
+    id: 'ancient',
+    number: '01',
+    name: '超古代文明',
+    heroName: 'レオン',
+    heroFullName: 'レオン・アルカディア',
+    heroRole: '星霊魔導技師',
+    icon: 'fa-sun',
+    badgeClass: 'from-cyan-500 to-blue-600',
+    synopsis: '海に浮かぶ星霊都市の若き技師レオン。穏やかな日々の整備作業の裏で忍び寄る陰謀と古代兵器の脅威に立ち向かう。',
+    openingLocation: 'アトランティス・下層工房',
+    openingText: '朝の陽光が水路の水面に反射し、工房の白い壁にゆらゆらと光の波を映している。\n「よし、今日も星霊水晶の調律から片付けるか。」\n若き技師レオン・アルカディアは工具を手に取り、いつものように朝の点検作業に取りかかった。街の広場からは市場が開く賑やかな声と、水鳥の鳴き声がのんびりと聞こえてくる。',
+    openingChoices: [
+      '日課の星霊水晶の研磨と出力チェックを丁寧に行う',
+      '窓を開けて朝の風を入れ、通りかかった顔馴染みに挨拶する',
+      '机に積み上がった昨夜の設計図を整理して一息つく'
+    ]
+  },
+  {
+    id: 'primitive',
+    number: '02',
+    name: '原始時代',
+    heroName: 'ガウ',
+    heroFullName: 'ガウ',
+    heroRole: '「牙の部族」の若き狩人',
+    icon: 'fa-paw',
+    badgeClass: 'from-amber-600 to-orange-700',
+    synopsis: '白い息が舞う氷河の大地で暮らす狩人ガウ。日々の狩りと部族の暮らしの中から、やがて部族の存亡を懸けた戦いへと歩み出す。',
+    openingLocation: '牙の部族・焚き火の広場',
+    openingText: '夜明け前の冷たい空気の中、消えかけた焚き火の熾火がぱちりと小さく爆ぜた。\nガウは毛皮のマントを肩に掛け直し、岩穴の外へ顔を出す。遠くの雪原はまだ薄青く静まり返り、集落の子どもたちが眠る寝息と、川のせせらぎだけが響いている。',
+    openingChoices: [
+      '石槍の穂先を砥石で磨き、今日の狩りに備える',
+      '焚き火に枯れ枝をくべて火を大きくし、体を温める',
+      '集落の端まで歩いて朝の空模様と風の向きを確かめる'
+    ]
+  },
+  {
+    id: 'medieval',
+    number: '03',
+    name: '中世',
+    heroName: 'セシル',
+    heroFullName: 'セシル・フォン・ヴァイス',
+    heroRole: '元・聖騎士団長',
+    icon: 'fa-shield-halved',
+    badgeClass: 'from-indigo-500 to-purple-700',
+    synopsis: '王都の片隅で静かに暮らす元騎士セシル。民の暮らしに触れる日々の中で、街に広がる不穏な噂と闇の企みに向き合うことになる。',
+    openingLocation: 'ヴァルハリア王都・石畳の朝市',
+    openingText: '朝の鐘が石造りの街並みに低く響き、パン屋の窯から焼きたての香ばしい匂いが漂ってくる。\n騎士団を退いたセシルは、外套の襟を直しながら朝市の通りをゆっくりと歩いていた。荷車を引く商人や水を汲む娘たちが、いつもの朝と変わらぬ挨拶を交わしている。',
+    openingChoices: [
+      '馴染みの露店で温かいスープと黒パンを買って朝食にする',
+      '井戸端で話す街の人たちの雑談に耳を傾けながら歩く',
+      '大聖堂へと続く坂道を眺めつつ、日課の散歩を続ける'
+    ]
+  },
+  {
+    id: 'ww2',
+    number: '04',
+    name: '世界大戦中',
+    heroName: 'ジャック',
+    heroFullName: 'ジャック・ミラー',
+    heroRole: '特殊偵察部隊・軍曹',
+    icon: 'fa-jet-fighter',
+    badgeClass: 'from-emerald-600 to-slate-700',
+    synopsis: '前線から離れた宿営地で待機する軍曹ジャック。戦友との何気ない時間から、やがて極秘作戦の渦中へと足を踏み入れていく。',
+    openingLocation: '連合軍・後方野営地',
+    openingText: '小雨の上がった朝、テントのキャンバスから落ちる水滴がブリキのマグカップを鳴らした。\n「ぬるいコーヒーだが、今日はまだ砲声が遠いな。」\nジャック軍曹は腰を下ろし、地図の端でタバコに火をつける戦友たちの冗談混じりの会話を聞いていた。',
+    openingChoices: [
+      'マグカップのコーヒーを飲み干し、装備の点検を始める',
+      '戦友たちの雑談に加わり、故郷の話や次の休暇の噂をする',
+      '野営地の見張り台まで歩き、霧の晴れた森の稜線を眺める'
+    ]
+  },
+  {
+    id: 'sengoku',
+    number: '05',
+    name: '戦国時代',
+    heroName: '影丸',
+    heroFullName: '影丸',
+    heroRole: '旅の薬売り（元・忍び）',
+    icon: 'fa-khanda',
+    badgeClass: 'from-rose-600 to-red-900',
+    synopsis: '薬売りに身をやつし諸国を巡る忍びの影丸。山間の宿場町での静かな滞在から、やがて乱世の陰謀と宿命の刃へと導かれる。',
+    openingLocation: '山間の宿場町・茶屋の軒先',
+    openingText: '朝霧が山の稜線をゆっくりと離れ、街道沿いの茶屋に湯気の立つ茶釜の音が響いている。\n旅の薬売りに身をやつした影丸は、縁台に薬箱を置いて熱い番茶を一口すすった。往来を行く旅人や農夫たちの足取りはまだ穏やかで、山鳥のさえずりが心地よい。',
+    openingChoices: [
+      '茶屋の店主と世間話をしながら、街道の様子を聞く',
+      '薬箱を開けて薬草の乾き具合と荷造りを整える',
+      '宿場町の端にある小さな祠へ立ち寄り、静かに手を合わせる'
+    ]
+  },
+  {
+    id: 'modern',
+    number: '06',
+    name: '現代日本',
+    heroName: '神崎蓮',
+    heroFullName: '神崎 蓮',
+    heroRole: '大学2年生・コンビニバイト',
+    icon: 'fa-train-subway',
+    badgeClass: 'from-sky-500 to-indigo-600',
+    synopsis: '東京で平凡な大学生活を送る神崎蓮。講義やバイトの何気ない日常の隙間に、少しずつ奇妙な違和感と都市伝説の影が忍び寄る。',
+    openingLocation: '東京・大学キャンパスのベンチ',
+    openingText: '午後の講義が終わり、キャンパスの中庭にオレンジ色の西日が差し込んでいる。\n「あー、今日のレポートやっと終わった……。」\n神崎蓮は缶コーヒーのプルタブを開け、スマホでSNSのタイムラインを眺めながら大きく伸びをした。周りではサークル帰りの学生たちが笑い声を上げている。',
+    openingChoices: [
+      'スマホで友人からのメッセージを確認し、帰りの予定を決める',
+      '駅前の商店街へ寄り道して、晩ご飯の買い出しをする',
+      'バイトの時間まで少し余裕があるので、本屋へ立ち寄る'
+    ]
+  },
+  {
+    id: 'nearfuture',
+    number: '07',
+    name: '近未来',
+    heroName: 'ノヴァ',
+    heroFullName: 'ノヴァ（NV-09）',
+    heroRole: '都市環境整備アンドロイド',
+    icon: 'fa-microchip',
+    badgeClass: 'from-fuchsia-500 to-cyan-500',
+    synopsis: '2089年のネオトーキョーで整備任務につくアンドロイド・ノヴァ。単調な日常の巡回の中で芽生えた小さな心の揺らぎが運命を変える。',
+    openingLocation: 'ネオトーキョー・第4居住区プロムナード',
+    openingText: 'ネオンの広告塔が朝の淡い空色に切り替わり、自動清掃ドローンが静かに歩道を滑っていく。\nノヴァは街路樹の水分量を計測する定時タスクをこなしながら、通勤する市民たちの足音を見送っていた。システムは正常、すべてがいつも通りの朝だった。',
+    openingChoices: [
+      '定時メンテナンスの報告を送信し、次の区画の植栽を見回る',
+      'ベンチで休む老人の落とし物を拾い、静かに手渡す',
+      '自分のログに記録された微かな演算ノイズを気にとめつつ巡回を続ける'
+    ]
+  },
+  {
+    id: 'farfuture',
+    number: '08',
+    name: '超未来',
+    heroName: 'アストラ',
+    heroFullName: 'アストラ',
+    heroRole: '世代宇宙船エデンの観測意識体',
+    icon: 'fa-meteor',
+    badgeClass: 'from-violet-500 to-amber-400',
+    synopsis: '新天地を目指す巨大宇宙船エデンで星の観測を続ける意識体アストラ。静寂の航行の日々から、船を揺るがす異変へと立ち向かう。',
+    openingLocation: '世代宇宙船エデン・天蓋庭園',
+    openingText: '人工太陽の柔らかな光がガラスの天蓋を満たし、庭園の緑の葉に小さな露が光っている。\n意識体アストラは光の粒となって庭園の風を感じながら、今日も静かに航行ログの巡回を続けていた。船内の居住区では人々が穏やかな朝を迎え、音楽と語らいの気配が満ちている。',
+    openingChoices: [
+      '庭園の植物たちの生体リズムに意識を合わせ、穏やかな時間を楽しむ',
+      '展望ドームへ移動し、遠く輝く星々の軌道を観測する',
+      '居住区の子どもたちが見上げる空に、小さな光の模様を描いてみる'
+    ]
+  }
+];
+
+// 各時代 本編（1〜40ターン）の自然な流れ（説明的・メタ的な言葉は使わない）
+const STORY_STAGES = [
+  { min: 1,  max: 7,  label: '穏やかな日常' },
+  { min: 8,  max: 13, label: '事件・騒動の発生' },
+  { min: 14, max: 18, label: '仲間の加入' },
+  { min: 19, max: 24, label: '協力して解決' },
+  { min: 25, max: 30, label: '黒幕との戦い' },
+  { min: 31, max: 34, label: '死や別れ・犠牲' },
+  { min: 35, max: 37, label: '解決' },
+  { min: 38, max: 40, label: 'エンディング' }
+];
+
+// 最終編80ターンのうち、選ばれなかった残り4人の別視点ターン（合計30ターン）
+const FINAL_OTHER_TURNS = new Set([
+  5, 6, 7, 8, 9, 10,
+  20, 21, 22, 23, 24, 25, 26, 27,
+  40, 41, 42, 43, 44, 45, 46, 47,
+  60, 61, 62, 63, 64, 65, 66, 67
+]);
+
+const STORAGE_PROGRESS_KEY = 'chronos_nexus_progress_v4';
+const STORAGE_SLOTS_KEY = 'chronos_nexus_save_slots_v4';
+
+// ============================================================================
+// 2. 状態管理・セッション世代管理・AbortController
+// ============================================================================
+let progressData = loadProgressData();
+
+let activeSessionId = 0;
+let activeAbortController = null;
+let typewriterTimer = null;
+let isTypingActive = false;
+let isTurnBusy = false;
+let fullStoryBuffer = '';
+
+let gameState = null;
+
+// 最終編 編成用の一時状態（メイン主人公1人＋同行仲間3人）
+let selectedMainId = null;
+let selectedAllyIds = [];
+let saveLoadModalMode = 'save';
+let returnTitleAfterSave = false;
+
+window.onload = function () {
+  renderTitleScreen();
+  updateTypewriterLabel();
+  showScreen('screenTitle');
+};
+
+function loadProgressData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_PROGRESS_KEY);
+    if (raw) {
+      return {
+        clearedEras: [],
+        finalCleared: false,
+        typewriter: true,
+        ...JSON.parse(raw)
+      };
+    }
+  } catch (e) {
+    // ignore
+  }
+  return {
+    clearedEras: [],
+    finalCleared: false,
+    typewriter: true
+  };
+}
+
+function saveProgressData() {
+  try {
+    localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(progressData));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function cancelAllAsyncWork() {
+  activeSessionId += 1;
+  if (activeAbortController) {
+    try {
+      activeAbortController.abort();
+    } catch (e) {
+      // ignore
+    }
+    activeAbortController = null;
+  }
+  if (typewriterTimer) {
+    clearInterval(typewriterTimer);
+    typewriterTimer = null;
+  }
+  isTypingActive = false;
+  isTurnBusy = false;
+
+  const overlay = document.getElementById('storyLoadingOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  const textEl = document.getElementById('storyTextContainer');
+  if (textEl) textEl.classList.remove('typing-cursor');
+}
+
+function showScreen(targetId) {
+  ['screenTitle', 'screenPartySelect', 'screenGame'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', id !== targetId);
+  });
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function requestReturnToTitle() {
+  finishTypewriterNow();
+  const inGame = !document.getElementById('screenGame').classList.contains('hidden');
+  if (!inGame || (gameState && gameState.isCompleted)) {
+    forceReturnToTitle();
+    return;
+  }
+  document.getElementById('modalBackConfirm').classList.remove('hidden');
+}
+
+function closeBackConfirmModal() {
+  document.getElementById('modalBackConfirm').classList.add('hidden');
+}
+
+function forceReturnToTitle() {
+  cancelAllAsyncWork();
+  closeBackConfirmModal();
+  closeSaveLoadModal();
+  gameState = null;
+  renderTitleScreen();
+  showScreen('screenTitle');
+}
+
+function abortTurnGenerationManually() {
+  cancelAllAsyncWork();
+  setActionControlsDisabled(false);
+  showToast('生成を中断しました。別の選択や自由記入を試せます。', 'info');
+}
+
+// ============================================================================
+// 3. タイトル画面・設定・テスト用操作
+// ============================================================================
+function toggleTypewriterSetting() {
+  progressData.typewriter = !progressData.typewriter;
+  saveProgressData();
+  updateTypewriterLabel();
+}
+
+function updateTypewriterLabel() {
+  const el = document.getElementById('typewriterLabel');
+  if (el) {
+    el.textContent = progressData.typewriter ? 'ON' : 'OFF';
+    el.className = progressData.typewriter ? 'text-amber-400 font-bold' : 'text-slate-500 font-bold';
+  }
+}
+
+function unlockAllErasForTest() {
+  progressData.clearedEras = ERAS.map(e => e.id);
+  saveProgressData();
+  renderTitleScreen();
+  showToast('全8時代のクリア状態を解放しました！最終編に挑戦できます。', 'success');
+}
+
+function resetClearedProgress() {
+  progressData.clearedEras = [];
+  progressData.finalCleared = false;
+  saveProgressData();
+  renderTitleScreen();
+  showToast('クリア履歴をリセットしました。', 'info');
+}
+
+function renderTitleScreen() {
+  const count = progressData.clearedEras.length;
+  document.getElementById('clearedCountText').textContent = `${count} / 8 時代クリア`;
+
+  const grid = document.getElementById('eraGrid');
+  grid.innerHTML = '';
+
+  ERAS.forEach(era => {
+    const isCleared = progressData.clearedEras.includes(era.id);
+    const card = document.createElement('div');
+    card.className = `era-card glass-panel rounded-2xl p-5 border ${isCleared ? 'border-emerald-500/60' : 'border-slate-700/80'} flex flex-col justify-between gap-4`;
+
+    card.innerHTML = `
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-2.5">
+          <span class="px-2.5 py-0.5 rounded bg-gradient-to-r ${era.badgeClass} text-white font-cinzel text-xs font-bold">
+            ERA ${era.number}
+          </span>
+          ${isCleared
+            ? '<span class="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-400/50 text-emerald-300 text-[11px] font-bold"><i class="fa-solid fa-check"></i> クリア済</span>'
+            : '<span class="text-xs text-slate-400"><i class="fa-solid ' + era.icon + ' mr-1"></i>' + escapeHtml(era.heroName) + '</span>'
+          }
+        </div>
+        <h3 class="font-serif-jp text-lg font-bold text-white mb-0.5">${escapeHtml(era.name)}</h3>
+        <div class="text-xs text-sky-400 font-medium mb-2">主人公：${escapeHtml(era.heroFullName)}（${escapeHtml(era.heroRole)}）</div>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${escapeHtml(era.synopsis)}</p>
+      </div>
+      <button type="button" onclick="startEraStory('${era.id}')" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/40 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer">
+        <span>この時代を始める</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    `;
+    grid.appendChild(card);
+  });
+
+  const unlocked = count >= ERAS.length;
+  const btnFinal = document.getElementById('btnOpenFinalSetup');
+  const badge = document.getElementById('finalStatusBadge');
+  const desc = document.getElementById('finalBannerDesc');
+
+  if (unlocked) {
+    btnFinal.disabled = false;
+    btnFinal.className = 'w-full md:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg cursor-pointer transition shrink-0';
+    badge.className = 'px-2.5 py-0.5 rounded bg-amber-500/20 border border-amber-400 text-amber-300 text-xs font-bold';
+    badge.innerHTML = '<i class="fa-solid fa-unlock"></i> 挑戦可能';
+    desc.textContent = '8人の英雄が集結！メイン主人公1人と同行仲間3人を選び、残り4人の別視点パートも交えながら全員の力で元凶『虚無の織手』を撃破せよ！';
+  } else {
+    btnFinal.disabled = true;
+    btnFinal.className = 'w-full md:w-auto px-6 py-3.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-sm sm:text-base flex items-center justify-center gap-2 cursor-not-allowed transition shrink-0';
+    badge.className = 'px-2.5 py-0.5 rounded bg-red-950/80 border border-red-500/50 text-red-400 text-xs font-bold';
+    badge.innerHTML = `<i class="fa-solid fa-lock"></i> 未解放（残り ${8 - count} 時代）`;
+    desc.textContent = '全8時代をクリアすると挑戦可能。メイン主人公1人と同行仲間3人を選び、残り4人の別視点パートも交えながら全員の力で元凶『虚無の織手』を撃破せよ！';
+  }
+}
+
+// ============================================================================
+// 4. 各時代＆最終編開始
+// ============================================================================
+function startEraStory(eraId) {
+  const era = ERAS.find(e => e.id === eraId);
+  if (!era) return;
+  cancelAllAsyncWork();
+
+  gameState = {
+    mode: 'era',
+    eraId: era.id,
+    eraName: era.name,
+    turn: 1,
+    maxTurn: 50,
+    morale: 85,
+    bond: 50,
+    tension: 15,
+    location: era.openingLocation,
+    currentStory: era.openingText,
+    currentChoices: [...era.openingChoices],
+    history: [],
+    isCompleted: false,
+    mainHeroId: era.id,
+    allyIds: [],
+    otherIds: [],
+    activeHeroId: era.id,
+    isSubPerspective: false,
+    subPerspectiveCount: 0
+  };
+
+  showScreen('screenGame');
+  setActionControlsDisabled(false);
+  updateGameScreen(true);
+}
+
+function openPartySelectScreen() {
+  if (progressData.clearedEras.length < ERAS.length) return;
+  cancelAllAsyncWork();
+  selectedMainId = null;
+  selectedAllyIds = [];
+  renderPartySelectScreen();
+  showScreen('screenPartySelect');
+}
+
+function clearPartySelection() {
+  selectedMainId = null;
+  selectedAllyIds = [];
+  renderPartySelectScreen();
+}
+
+function renderPartySelectScreen() {
+  const grid = document.getElementById('partySelectGrid');
+  grid.innerHTML = '';
+
+  ERAS.forEach(era => {
+    const isMain = selectedMainId === era.id;
+    const isAlly = selectedAllyIds.includes(era.id);
+
+    let borderStyle = 'border-slate-700 hover:border-slate-500';
+    let roleBadge = '<span class="px-2 py-0.5 rounded bg-purple-950/80 border border-purple-500/40 text-purple-300 text-[10px] font-bold">別視点枠（4人）</span>';
+
+    if (isMain) {
+      borderStyle = 'border-amber-400 bg-amber-950/30 shadow-lg';
+      roleBadge = '<span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 text-[10px] font-bold">★ メイン主人公</span>';
+    } else if (isAlly) {
+      borderStyle = 'border-sky-400 bg-sky-950/30 shadow-lg';
+      roleBadge = '<span class="px-2 py-0.5 rounded bg-sky-400 text-slate-950 text-[10px] font-bold">◆ 同行仲間</span>';
+    }
+
+    const card = document.createElement('div');
+    card.className = `glass-panel rounded-xl p-4 border-2 cursor-pointer transition flex flex-col justify-between ${borderStyle}`;
+    card.onclick = () => onClickPartyCard(era.id);
+
+    card.innerHTML = `
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="text-xs text-slate-400 font-bold">${escapeHtml(era.name)}</span>
+          ${roleBadge}
+        </div>
+        <div class="font-serif-jp font-bold text-base text-white">${escapeHtml(era.heroFullName)}</div>
+        <div class="text-xs text-slate-400 mt-0.5 mb-3">${escapeHtml(era.heroRole)}</div>
+      </div>
+      <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+        ${isMain
+          ? 'クリックでメイン主人公を解除'
+          : isAlly
+            ? 'クリックで同行仲間を解除'
+            : (!selectedMainId
+              ? 'クリックで【メイン主人公】に指定'
+              : (selectedAllyIds.length < 3 ? 'クリックで【同行仲間】に追加' : 'その他メンバー枠'))
+        }
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('partyMainCount').textContent = selectedMainId ? '1' : '0';
+  const mainDisp = document.getElementById('partyMainDisplay');
+  if (selectedMainId) {
+    const m = ERAS.find(e => e.id === selectedMainId);
+    mainDisp.innerHTML = `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400 text-amber-300 font-bold text-xs">${escapeHtml(m.heroName)}</span>`;
+  } else {
+    mainDisp.innerHTML = '<span class="text-slate-500 italic text-xs">1人選択してください</span>';
+  }
+
+  document.getElementById('partyAllyCount').textContent = selectedAllyIds.length;
+  const allyDisp = document.getElementById('partyAllyDisplay');
+  if (selectedAllyIds.length === 0) {
+    allyDisp.innerHTML = '<span class="text-slate-500 italic text-xs">3人選択してください</span>';
+  } else {
+    allyDisp.innerHTML = selectedAllyIds.map(id => {
+      const a = ERAS.find(e => e.id === id);
+      return `<span class="px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-400 text-sky-300 font-bold text-xs">${escapeHtml(a.heroName)}</span>`;
+    }).join('');
+  }
+
+  const chosen = new Set([...(selectedMainId ? [selectedMainId] : []), ...selectedAllyIds]);
+  const others = ERAS.filter(e => !chosen.has(e.id));
+  document.getElementById('partyOthersDisplay').textContent = others.map(o => `${o.heroName}（${o.name}）`).join('、');
+
+  const ready = Boolean(selectedMainId) && selectedAllyIds.length === 3;
+  const startBtn = document.getElementById('btnStartFinalChapter');
+  startBtn.disabled = !ready;
+  startBtn.className = ready
+    ? 'px-6 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-sm shadow-lg cursor-pointer transition'
+    : 'px-6 py-2 rounded-lg bg-slate-700 text-slate-400 font-bold text-sm cursor-not-allowed transition';
+}
+
+function onClickPartyCard(eraId) {
+  if (selectedMainId === eraId) {
+    selectedMainId = null;
+    renderPartySelectScreen();
+    return;
+  }
+  if (selectedAllyIds.includes(eraId)) {
+    selectedAllyIds = selectedAllyIds.filter(id => id !== eraId);
+    renderPartySelectScreen();
+    return;
+  }
+  if (!selectedMainId) {
+    selectedMainId = eraId;
+    renderPartySelectScreen();
+    return;
+  }
+  if (selectedAllyIds.length < 3) {
+    selectedAllyIds.push(eraId);
+    renderPartySelectScreen();
+    return;
+  }
+  showToast('メイン主人公1人と同行仲間3人は選択済みです。変更したいキャラをクリックして外してください。', 'info');
+}
+
+function startFinalChapter() {
+  if (!selectedMainId || selectedAllyIds.length !== 3) return;
+  cancelAllAsyncWork();
+
+  const chosen = new Set([selectedMainId, ...selectedAllyIds]);
+  const otherIds = ERAS.filter(e => !chosen.has(e.id)).map(e => e.id);
+  const mainHero = ERAS.find(e => e.id === selectedMainId);
+  const alliesText = selectedAllyIds.map(id => ERAS.find(e => e.id === id).heroName).join('、');
+  const othersText = otherIds.map(id => ERAS.find(e => e.id === id).heroName).join('、');
+
+  gameState = {
+    mode: 'final',
+    eraId: 'final',
+    eraName: '最終編：終焉の城',
+    turn: 1,
+    maxTurn: 80,
+    morale: 90,
+    bond: 75,
+    tension: 45,
+    location: '終焉の城・時空の祭壇',
+    currentStory: `8つの時代の境界が交差する異空間『終焉の城（クロノス・ネクサス）』。\nメイン主人公${mainHero.heroName}と同行仲間${alliesText}は、時空の裂け目を越えて集結した。\n一方、${othersText}の4人は別ルートへと転移し、別視点パートで城の防衛機構や罠を打ち砕く役割を担う。\nすべての時代を歪めてきた元凶『虚無の織手』を打ち倒すため、8人の戦いが始まる！`,
+    currentChoices: [
+      `${mainHero.heroName}を中心に${alliesText}と陣形を組み、城の深部へ進む`,
+      '別ルートへ向かった4人の仲間と意識を合わせ、城の構造を探る',
+      '祭壇に刻まれた時空の紋章を調べ、虚無の織手の気配を追う'
+    ],
+    history: [],
+    isCompleted: false,
+    mainHeroId: selectedMainId,
+    allyIds: [...selectedAllyIds],
+    otherIds: otherIds,
+    activeHeroId: selectedMainId,
+    isSubPerspective: false,
+    subPerspectiveCount: 0
+  };
+
+  showScreen('screenGame');
+  setActionControlsDisabled(false);
+  updateGameScreen(true);
+}
+
+// ============================================================================
+// 5. ゲーム画面描画＆タイプライター演出
+// ============================================================================
+function getPhaseLabelForState(st) {
+  if (st.mode === 'era') {
+    if (st.turn <= 40) {
+      const stage = STORY_STAGES.find(s => st.turn >= s.min && st.turn <= s.max) || STORY_STAGES[0];
+      return stage.label;
+    }
+    return `連れ去りパート (${st.turn - 40}/10)`;
+  }
+  if (st.isSubPerspective) {
+    return `別視点パート (${st.subPerspectiveCount}/30)`;
+  }
+  if (st.turn < 72) return 'メイン進行';
+  return '8人総力戦・最終決戦';
+}
+
+function updateGameScreen(animate) {
+  if (!gameState) return;
+  const isFinal = gameState.mode === 'final';
+  const heroObj = ERAS.find(e => e.id === gameState.activeHeroId) || ERAS[0];
+
+  const turnPrefix = isFinal ? '最終編：' : '';
+  document.getElementById('turnBadge').textContent = `${turnPrefix}第${gameState.turn}ターン`;
+  document.getElementById('phaseLabel').textContent = getPhaseLabelForState(gameState);
+  document.getElementById('locationText').textContent = gameState.location;
+
+  const lastNote = document.getElementById('lastChoiceNote');
+  if (gameState.history.length > 0) {
+    const last = gameState.history[gameState.history.length - 1];
+    lastNote.textContent = `直前の行動: 「${last.action}」`;
+  } else {
+    lastNote.textContent = '';
+  }
+
+  renderStoryText(gameState.currentStory, animate);
+
+  const reachedEnd = gameState.turn >= gameState.maxTurn;
+  const choicesEl = document.getElementById('choicesList');
+  const customBox = document.getElementById('customActionBox');
+  const clearBox = document.getElementById('chapterClearBox');
+
+  if (reachedEnd) {
+    gameState.isCompleted = true;
+    choicesEl.classList.add('hidden');
+    customBox.classList.add('hidden');
+    clearBox.classList.remove('hidden');
+
+    if (isFinal) {
+      document.getElementById('clearHeading').textContent = '8人全員の力で元凶『虚無の織手』を撃破し、各時代へ帰還した！';
+      document.getElementById('clearDescription').textContent = 'メイン主人公・同行仲間・別視点の4人、すべての力が重なり未来を切り拓きました。';
+    } else {
+      document.getElementById('clearHeading').textContent = `【${gameState.eraName}】の物語と連れ去りパートを完遂！`;
+      document.getElementById('clearDescription').textContent = 'この時代の記録が刻まれました。タイトル画面へ戻り、他の時代や最終編へ進みましょう。';
+    }
+  } else {
+    gameState.isCompleted = false;
+    choicesEl.classList.remove('hidden');
+    customBox.classList.remove('hidden');
+    clearBox.classList.add('hidden');
+    renderChoiceButtons(gameState.currentChoices);
+  }
+
+  document.getElementById('sideEraName').textContent = isFinal ? '最終編：終焉の城' : gameState.eraName;
+  document.getElementById('sideHeroName').textContent = heroObj.heroFullName + (gameState.isSubPerspective ? ' [別視点]' : '');
+  document.getElementById('sideHeroRole').textContent = heroObj.heroRole;
+
+  setGauge('statMorale', gameState.morale);
+  setGauge('statBond', gameState.bond);
+  setGauge('statTension', gameState.tension);
+
+  const rosterBox = document.getElementById('finalRosterBox');
+  if (isFinal) {
+    rosterBox.classList.remove('hidden');
+    const mainHero = ERAS.find(e => e.id === gameState.mainHeroId);
+    document.getElementById('rosterMainText').textContent = mainHero ? mainHero.heroName : '';
+    document.getElementById('rosterAlliesText').textContent = gameState.allyIds
+      .map(id => ERAS.find(e => e.id === id)?.heroName)
+      .filter(Boolean)
+      .join('、');
+    document.getElementById('subPerspectiveCounter').textContent = `${gameState.subPerspectiveCount}/30`;
+    document.getElementById('rosterOthersText').textContent = gameState.otherIds
+      .map(id => ERAS.find(e => e.id === id)?.heroName)
+      .filter(Boolean)
+      .join('、');
+  } else {
+    rosterBox.classList.add('hidden');
+  }
+
+  renderHistoryLog();
+}
+
+function setGauge(prefix, val) {
+  const clamped = Math.max(0, Math.min(100, Number(val) || 0));
+  document.getElementById(`${prefix}Val`).textContent = clamped;
+  document.getElementById(`${prefix}Bar`).style.width = `${clamped}%`;
+}
+
+function renderStoryText(text, animate) {
+  const el = document.getElementById('storyTextContainer');
+  if (typewriterTimer) {
+    clearInterval(typewriterTimer);
+    typewriterTimer = null;
+  }
+  fullStoryBuffer = text;
+  const sid = activeSessionId;
+
+  if (!animate || !progressData.typewriter) {
+    el.textContent = text;
+    el.classList.remove('typing-cursor');
+    isTypingActive = false;
+    return;
+  }
+
+  el.textContent = '';
+  el.classList.add('typing-cursor');
+  isTypingActive = true;
+  let index = 0;
+
+  typewriterTimer = setInterval(() => {
+    if (sid !== activeSessionId) {
+      clearInterval(typewriterTimer);
+      typewriterTimer = null;
+      return;
+    }
+    if (index < text.length) {
+      el.textContent += text.charAt(index);
+      index += 1;
+    } else {
+      finishTypewriterNow();
+    }
+  }, 14);
+}
+
+function finishTypewriterNow() {
+  if (!isTypingActive) return;
+  if (typewriterTimer) {
+    clearInterval(typewriterTimer);
+    typewriterTimer = null;
+  }
+  const el = document.getElementById('storyTextContainer');
+  el.textContent = fullStoryBuffer;
+  el.classList.remove('typing-cursor');
+  isTypingActive = false;
+}
+
+function renderChoiceButtons(choices) {
+  const list = document.getElementById('choicesList');
+  list.innerHTML = '';
+
+  choices.forEach((choice, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn w-full text-left p-3.5 sm:p-4 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-100 flex items-start gap-3 cursor-pointer';
+    btn.onclick = () => executeTurnAction(choice, false);
+
+    btn.innerHTML = `
+      <span class="w-6 h-6 rounded-md bg-slate-800 text-sky-400 font-cinzel font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+        ${idx + 1}
+      </span>
+      <span class="text-sm sm:text-base leading-snug">${escapeHtml(choice)}</span>
+    `;
+    list.appendChild(btn);
+  });
+}
+
+function renderHistoryLog() {
+  const list = document.getElementById('historyLogList');
+  document.getElementById('historyCountLabel').textContent = `${gameState.history.length}件`;
+
+  if (gameState.history.length === 0) {
+    list.innerHTML = '<div class="text-slate-500 italic text-center py-6">行動を選ぶと履歴が記録されます</div>';
+    return;
+  }
+
+  list.innerHTML = [...gameState.history].reverse().map(item => `
+    <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+      <div class="flex justify-between text-[10px] text-slate-400 mb-0.5">
+        <span class="font-bold text-amber-400">第${item.turn}ターン</span>
+        <span>${escapeHtml(item.actor || '')}</span>
+      </div>
+      <div class="text-sky-300 font-medium">▶ ${escapeHtml(item.action)}</div>
+      <div class="text-slate-400 text-[11px] mt-0.5 line-clamp-2">${escapeHtml(item.summary)}</div>
+    </div>
+  `).join('');
+}
+
+function setActionControlsDisabled(disabled) {
+  document.querySelectorAll('.choice-btn, #btnCustomSubmit, #customActionInput').forEach(el => {
+    el.disabled = disabled;
+  });
+}
+
+// ============================================================================
+// 6. ターン進行・視点切替・Gemini API / 内蔵シナリオ生成
+// ============================================================================
+function submitCustomAction() {
+  if (isTurnBusy || !gameState || gameState.isCompleted) return;
+  const input = document.getElementById('customActionInput');
+  const val = input.value.trim();
+  if (!val) {
+    showToast('自由行動の内容を入力してください。', 'info');
+    return;
+  }
+  input.value = '';
+  executeTurnAction(val, true);
+}
+
+async function executeTurnAction(actionText, isCustom) {
+  if (isTurnBusy || !gameState || gameState.isCompleted) return;
+  finishTypewriterNow();
+
+  const nextTurn = Math.min(gameState.maxTurn, gameState.turn + 1);
+  let nextActiveHeroId = gameState.activeHeroId;
+  let nextIsSub = false;
+  let nextSubCount = gameState.subPerspectiveCount || 0;
+
+  if (gameState.mode === 'final') {
+    const mainGroup = [gameState.mainHeroId, ...gameState.allyIds];
+    const others = gameState.otherIds.length > 0
+      ? gameState.otherIds
+      : ERAS.filter(e => !mainGroup.includes(e.id)).map(e => e.id);
+
+    if (FINAL_OTHER_TURNS.has(nextTurn) && nextSubCount < 30 && others.length > 0) {
+      nextIsSub = true;
+      nextSubCount += 1;
+      nextActiveHeroId = others[(nextSubCount - 1) % others.length];
+    } else {
+      nextIsSub = false;
+      nextActiveHeroId = mainGroup[nextTurn % mainGroup.length];
+    }
+  }
+
+  const sid = activeSessionId;
+  isTurnBusy = true;
+  setActionControlsDisabled(true);
+  document.getElementById('storyLoadingOverlay').classList.remove('hidden');
+
+  try {
+    const aiData = await fetchTurnFromGemini(nextTurn, actionText, isCustom, nextActiveHeroId, nextIsSub, nextSubCount, sid);
+    if (sid !== activeSessionId || !gameState) return;
+    document.getElementById('storyLoadingOverlay').classList.add('hidden');
+    isTurnBusy = false;
+    setActionControlsDisabled(false);
+    commitTurnState(nextTurn, actionText, aiData, nextActiveHeroId, nextIsSub, nextSubCount);
+  } catch (err) {
+    if (sid !== activeSessionId || !gameState) return;
+    document.getElementById('storyLoadingOverlay').classList.add('hidden');
+    isTurnBusy = false;
+    setActionControlsDisabled(false);
+    const fallback = buildFallbackTurnData(nextTurn, actionText, isCustom, nextActiveHeroId, nextIsSub, nextSubCount);
+    commitTurnState(nextTurn, actionText, fallback, nextActiveHeroId, nextIsSub, nextSubCount);
+  }
+}
+
+function buildFallbackTurnData(nextTurn, actionText, isCustom, nextActiveHeroId, nextIsSub, nextSubCount) {
+  const heroObj = ERAS.find(e => e.id === nextActiveHeroId) || ERAS[0];
+  const actLabel = isCustom ? `自由行動「${actionText}」` : `「${actionText}」`;
+
+  if (gameState.mode === 'era') {
+    if (nextTurn <= 40) {
+      const stage = STORY_STAGES.find(s => nextTurn >= s.min && nextTurn <= s.max) || STORY_STAGES[0];
+      let body = '';
+      let choices = [];
+
+      if (nextTurn <= 4) {
+        body = `${heroObj.heroName}は${actLabel}を選び、いつもと変わらぬ穏やかな時間を過ごしていた。\n通り過ぎる人々の笑顔や風の匂いには、まだ特別な異変は見当たらない。`;
+        choices = [
+          'いつもの日課を続けながら、のんびりと周囲の様子を眺める',
+          '近くにいる顔馴染みに声をかけ、たわいない世間話をする',
+          '少し足を伸ばして、普段あまり行かない場所を散歩してみる'
+        ];
+      } else if (nextTurn <= 7) {
+        body = `${heroObj.heroName}が${actLabel}をこなしていたその時、ふと小さな違和感に気づいた。\n普段なら見かけない人物の影や、かすかに聞き慣れない物音が、日常の風景に小さな波紋を広げている。`;
+        choices = [
+          '気になった違和感の正体を、無理のない範囲で確かめてみる',
+          '顔馴染みの知人に、最近何か変わったことがないか尋ねる',
+          '深追いはせず、いつもの日常の予定を優先して行動する'
+        ];
+      } else if (nextTurn <= 13) {
+        body = `${heroObj.heroName}が${actLabel}に動いた直後、これまで隠されていた事件と騒動が一気に表面化した！\n平穏だった空気が一変し、${heroObj.heroName}は否応なく渦中へと引き込まれていく。`;
+        choices = [
+          '混乱の中で困っている人を助けながら、状況を把握する',
+          '騒動が起きた現場へ近づき、何が起きているのか見極める',
+          '一旦安全な場所へ身を寄せ、次の動きを冷静に考える'
+        ];
+      } else if (nextTurn <= 18) {
+        body = `${heroObj.heroName}の${actLabel}をきっかけに、同じ想いを抱く仲間が姿を現した。\nひとりでは抱えきれなかった困難に対し、信頼できる新たな仲間が隣に並んでくれる。`;
+        choices = [
+          '仲間にこれまでの経緯を話し、今後の動きを相談する',
+          '互いの得意な役割を確かめ合い、小さな連携を試す',
+          '仲間の提案に耳を傾け、一緒に行動を起こす'
+        ];
+      } else if (nextTurn <= 24) {
+        body = `${heroObj.heroName}たちは仲間と力を合わせて${actLabel}を成し遂げ、事件の裏に潜む真実へと近づいた。\nだがその先で、すべての糸を引いていた黒幕の存在が浮かび上がる。`;
+        choices = [
+          '仲間と息を合わせ、黒幕の拠点へと踏み込む',
+          '黒幕の狙いを見抜くため、慎重に罠と守りを突破する',
+          '仲間の援護を受けながら、正面から突破口を開く'
+        ];
+      } else if (nextTurn <= 30) {
+        body = `${heroObj.heroName}と仲間たちは、ついに黒幕との激しい戦いに突入した！\n${actLabel}をぶつけ合う死闘の中、黒幕の執念と圧倒的な力が立ちはだかる。`;
+        choices = [
+          '仲間との連携を信じ、渾身の一撃で黒幕を追い詰める',
+          '相手の攻撃を受け止めつつ、決定的な隙をうかがう',
+          '黒幕の揺さぶりに屈せず、強い意志で立ち向かう'
+        ];
+      } else if (nextTurn <= 34) {
+        body = `激闘の渦中で訪れた、非情な死や別れ、そしてかけがえのない犠牲。\n${heroObj.heroName}は${actLabel}を胸に、失われたものの重さと向き合いながらも前へ進む。`;
+        choices = [
+          '仲間の想いを胸に刻み、決して立ち止まらないと誓う',
+          '犠牲を無駄にしないため、最後の決断を下す',
+          '静かに別れを告げ、残された力を振り絞る'
+        ];
+      } else if (nextTurn <= 37) {
+        body = `${heroObj.heroName}たちの${actLabel}が黒幕の野望を打ち砕き、危機はついに解決へと向かう。\n深い傷跡を抱えながらも、確かな夜明けが訪れようとしていた。`;
+        choices = [
+          '生き残った人たちと力を合わせ、日常を取り戻す一歩を踏み出す',
+          '事件の終結を見届け、静かに息をつく',
+          '大切な場所へ戻り、これからの日々へ目を向ける'
+        ];
+      } else {
+        body = `${heroObj.heroName}は${actLabel}を経て、穏やかな結末のひとときを迎えた。\n静かな余韻が広がる中、空と大地の境界が微かに揺らぎ始める。`;
+        choices = [
+          '束の間の平穏を噛みしめ、仲間と言葉を交わす',
+          '空に走った奇妙な歪みに目を凝らす',
+          'これからの日々を思い描きながら歩を進める'
+        ];
+      }
+
+      return {
+        location: nextTurn <= 7 ? gameState.location : `${heroObj.name}・${stage.label}`,
+        storyText: body,
+        summary: `${actLabel}（${stage.label}）`,
+        choices,
+        moraleDelta: nextTurn >= 31 && nextTurn <= 34 ? -6 : 2,
+        bondDelta: nextTurn >= 14 ? 5 : 2,
+        tensionDelta: nextTurn <= 7 ? 2 : (nextTurn <= 30 ? 5 : -3)
+      };
+    }
+
+    // 41〜50ターン：連れ去りパート（10ターン）
+    const abductStep = nextTurn - 40;
+    const abductText = abductStep === 1
+      ? `穏やかな余韻が消えぬまま、突如として次元の亀裂が開いた！\n「見つけたぞ、${heroObj.name}の魂よ……」\nすべての元凶『虚無の織手』の歪んだ力が${heroObj.heroName}を包み込み、時空の狭間へと連れ去っていく。`
+      : abductStep < 10
+        ? `連れ去られた異空間の中で、${heroObj.heroName}は${actLabel}を試みる。\n渦巻く時空の奔流と『虚無の織手』の気配の中、${heroObj.heroName}は意識を繋ぎ止めながら奥へと引き寄せられていく。`
+        : `連れ去りの果て、${heroObj.heroName}はすべての時代が集う『終焉の城』へと辿り着いた！\nそこには他の時代の英雄たちと、元凶『虚無の織手』が待ち受けている。`;
+
+    return {
+      location: `時空の狭間（連れ去り ${abductStep}/10）`,
+      storyText: abductText,
+      summary: `${actLabel}（連れ去り ${abductStep}/10）`,
+      choices: [
+        '時空の渦に抗い、自身の記憶と意志を強く保つ',
+        '闇の気配を逆探知し、連れ去りの仕組みを見抜く',
+        '他の時代の微かな共鳴を感じ取り、次へ備える'
+      ],
+      moraleDelta: -2,
+      bondDelta: 3,
+      tensionDelta: 4
+    };
+  }
+
+  // 最終編（1〜80ターン）
+  const mainObj = ERAS.find(e => e.id === gameState.mainHeroId) || ERAS[0];
+  const alliesStr = gameState.allyIds.map(id => ERAS.find(e => e.id === id)?.heroName).filter(Boolean).join('、');
+
+  if (nextIsSub) {
+    return {
+      location: `終焉の城・別視点 (${nextSubCount}/30)`,
+      storyText: `メイン隊が突き進む裏側で、その他メンバーの${heroObj.heroName}（${heroObj.name}）が${actLabel}を実行した！\n別視点パートとして城の防衛機構や罠を突破し、${mainObj.heroName}たちへと確かな援護を送る。`,
+      summary: `別視点 ${heroObj.heroName}：${actLabel}`,
+      choices: [
+        '城の防衛回路を断ち切り、本隊の進路を開く',
+        '敵の戦力を引きつけ、別動隊の任務を完遂する',
+        '時代の技を活かして難所を突破する'
+      ],
+      moraleDelta: 2,
+      bondDelta: 5,
+      tensionDelta: 3
+    };
+  }
+
+  if (nextTurn < 72) {
+    return {
+      location: `終焉の城・深層（第${nextTurn}ターン）`,
+      storyText: `メイン主人公${mainObj.heroName}と同行仲間（${alliesStr}）は、${actLabel}で前線を切り開いた！\n別視点で戦う4人の援護も力となり、元凶『虚無の織手』が潜む最上階へと迫っていく。`,
+      summary: `${mainObj.heroName}隊：${actLabel}`,
+      choices: [
+        `${alliesStr}と息を合わせ、連携攻撃で突破する`,
+        '別動の4人と心を繋ぎ、城の罠を見抜く',
+        '虚無の織手の気配を追い、最上階へ急ぐ'
+      ],
+      moraleDelta: 2,
+      bondDelta: 4,
+      tensionDelta: 3
+    };
+  }
+
+  if (nextTurn < 80) {
+    return {
+      location: `終焉の城・虚無の玉座（第${nextTurn}ターン）`,
+      storyText: `${mainObj.heroName}、${alliesStr}、そして別視点で戦い抜いた4人——8人全員が元凶『虚無の織手』の前に集結！\n${actLabel}を合図に、全時代の力を束ねた総力戦が炸裂する。`,
+      summary: `8人総力戦：${actLabel}`,
+      choices: [
+        '8人全員の技と魂を重ね、虚無の織手を追い詰める',
+        'すべての時代の希望を光に変え、闇を払う',
+        '仲間と肩を並べ、最後の攻勢をかける'
+      ],
+      moraleDelta: 5,
+      bondDelta: 6,
+      tensionDelta: 5
+    };
+  }
+
+  return {
+    location: '時空の夜明け・それぞれの時代へ',
+    storyText: `8人全員の力が一つとなった渾身の一撃が、元凶『虚無の織手』を完全に打ち砕いた！\n${actLabel}の果てに時空の歪みは晴れ、8人の英雄たちはそれぞれの時代へと帰還していく。`,
+    summary: `元凶撃破・各時代へ帰還`,
+    choices: [
+      '仲間たちに別れと感謝を告げる',
+      'それぞれの時代へ戻る光の中へ歩み出す',
+      '新たな未来への希望を胸に刻む'
+    ],
+    moraleDelta: 10,
+    bondDelta: 10,
+    tensionDelta: -20
+  };
+}
+
+async function fetchTurnFromGemini(nextTurn, actionText, isCustom, nextActiveHeroId, nextIsSub, nextSubCount, sid) {
+  const heroObj = ERAS.find(e => e.id === nextActiveHeroId) || ERAS[0];
+  const isFinal = gameState.mode === 'final';
+
+  let phaseInstruction = '';
+  if (!isFinal) {
+    if (nextTurn <= 40) {
+      const stage = STORY_STAGES.find(s => nextTurn >= s.min && nextTurn <= s.max) || STORY_STAGES[0];
+      const pacingRule = nextTurn <= 7
+        ? '序盤（第1〜7ターン）はいきなり大事件や戦闘に巻き込まず、主人公のリアルな日常やいつもの過ごし方、周囲の空気感と、そこから芽生えるごく小さな違和感だけを自然に描いてください。'
+        : '日常のわずかな変化から徐々に事件・騒動へ発展し、仲間の加入、協力しての解決、黒幕との戦い、死や別れ・犠牲、解決、エンディングへと自然に繋げてください。';
+      phaseInstruction = `【${heroObj.name}編 本編 第${nextTurn}/40ターン（現在の流れ：${stage.label}）】
+${pacingRule}
+重要：「世界観」「背景」「紹介」「説明」といったメタ的・解説的な単語は本文に一切使わないでください。`;
+    } else {
+      phaseInstruction = `【${heroObj.name}編 連れ去りパート ${nextTurn - 40}/10ターン（第${nextTurn}/50ターン）】
+元凶『虚無の織手』によって時空の狭間へ連れ去られる展開を描写してください。`;
+    }
+  } else {
+    const mainObj = ERAS.find(e => e.id === gameState.mainHeroId) || ERAS[0];
+    const alliesText = gameState.allyIds.map(id => ERAS.find(e => e.id === id)?.heroName).filter(Boolean).join('、');
+    if (nextIsSub) {
+      phaseInstruction = `【最終編 その他4人の別視点パート（別視点 ${nextSubCount}/30ターン / 第${nextTurn}/80ターン）】
+メイン主人公（${mainObj.heroName}）と同行仲間（${alliesText}）以外の4人の一人である「${heroObj.heroName}（${heroObj.name}）」の視点で城内攻略や援護を描写してください。`;
+    } else if (nextTurn < 80) {
+      phaseInstruction = `【最終編 メイン進行（第${nextTurn}/80ターン）】
+メイン主人公（${mainObj.heroName}）と同行仲間（${alliesText}）を中心に、元凶『虚無の織手』へ迫る展開（終盤は8人全員の総力戦）を描写してください。`;
+    } else {
+      phaseInstruction = `【最終編 最終決戦（第80/80ターン）】
+8人全員の力を合わせて元凶『虚無の織手』を倒し、それぞれの時代へ帰還する結末を描写してください。`;
+    }
+  }
+
+  const recent = gameState.history.slice(-3).map(h => `第${h.turn}ターン: 「${h.action}」→ ${h.summary}`).join('\n');
+
+  const systemPrompt = `あなたは選択分岐型テキストアドベンチャーのゲームマスターです。
+プレイヤーの選択や自由記入を反映した物語シーンと、次の3つの選択肢をJSONで出力してください。
+${phaseInstruction}
+- storyTextは180〜300文字程度の自然な日本語小説調。
+- choicesは具体的な行動の選択肢を必ず3つ。
+- moraleDelta, bondDelta, tensionDeltaは-10〜+10の整数。`;
+
+  const userQuery = `ターン: ${nextTurn}/${gameState.maxTurn}
+現在の場所: ${gameState.location}
+視点人物: ${heroObj.heroFullName}（${heroObj.name}）
+直近の履歴:
+${recent || 'なし'}
+プレイヤーの行動${isCustom ? '（自由記入）' : ''}: 「${actionText}」`;
+
+  const payload = {
+    contents: [{ parts: [{ text: userQuery }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'OBJECT',
+        properties: {
+          location: { type: 'STRING' },
+          storyText: { type: 'STRING' },
+          summary: { type: 'STRING' },
+          choices: {
+            type: 'ARRAY',
+            items: { type: 'STRING' }
+          },
+          moraleDelta: { type: 'INTEGER' },
+          bondDelta: { type: 'INTEGER' },
+          tensionDelta: { type: 'INTEGER' }
+        },
+        required: ['location', 'storyText', 'summary', 'choices', 'moraleDelta', 'bondDelta', 'tensionDelta']
+      }
+    }
+  };
+
+  const apiKey = '';
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+  activeAbortController = new AbortController();
+  const timeoutHandle = setTimeout(() => {
+    if (activeAbortController) activeAbortController.abort();
+  }, 8500);
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: activeAbortController.signal
+    });
+    clearTimeout(timeoutHandle);
+    if (sid !== activeSessionId) throw new Error('Session aborted');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) throw new Error('Empty AI response');
+    return JSON.parse(rawText);
+  } finally {
+    clearTimeout(timeoutHandle);
+    activeAbortController = null;
+  }
+}
+
+function commitTurnState(nextTurn, actionText, resultData, nextActiveHeroId, nextIsSub, nextSubCount) {
+  const prevHero = ERAS.find(e => e.id === gameState.activeHeroId);
+
+  gameState.history.push({
+    turn: gameState.turn,
+    actor: prevHero ? prevHero.heroName : gameState.eraName,
+    action: actionText,
+    summary: resultData.summary || actionText
+  });
+
+  gameState.turn = nextTurn;
+  gameState.location = resultData.location || gameState.location;
+  gameState.currentStory = resultData.storyText;
+  gameState.currentChoices = (Array.isArray(resultData.choices) && resultData.choices.length >= 3)
+    ? resultData.choices.slice(0, 3)
+    : ['周囲の気配を慎重に探る', '力強く前へ踏み込む', '機転を利かせて活路を開く'];
+
+  gameState.morale = Math.max(0, Math.min(100, gameState.morale + (Number(resultData.moraleDelta) || 0)));
+  gameState.bond = Math.max(0, Math.min(100, gameState.bond + (Number(resultData.bondDelta) || 0)));
+  gameState.tension = Math.max(0, Math.min(100, gameState.tension + (Number(resultData.tensionDelta) || 0)));
+
+  gameState.activeHeroId = nextActiveHeroId;
+  gameState.isSubPerspective = nextIsSub;
+  gameState.subPerspectiveCount = nextSubCount;
+
+  updateGameScreen(true);
+}
+
+function completeChapterAndReturnTitle() {
+  if (!gameState) {
+    forceReturnToTitle();
+    return;
+  }
+  if (gameState.mode === 'era') {
+    if (!progressData.clearedEras.includes(gameState.eraId)) {
+      progressData.clearedEras.push(gameState.eraId);
+    }
+    saveProgressData();
+    showToast(`【${gameState.eraName}】のクリア記録を保存しました！`, 'success');
+  } else if (gameState.mode === 'final') {
+    progressData.finalCleared = true;
+    saveProgressData();
+    showToast('最終編クリアおめでとうございます！', 'success');
+  }
+  forceReturnToTitle();
+}
+
+// ============================================================================
+// 7. セーブ＆ロード（3スロット ＋ JSONエクスポート/インポート）
+// ============================================================================
+function openSaveLoadModal(mode, returnAfter = false) {
+  saveLoadModalMode = mode;
+  returnTitleAfterSave = returnAfter;
+
+  const titleEl = document.getElementById('saveLoadModalTitle');
+  titleEl.innerHTML = mode === 'save'
+    ? '<i class="fa-solid fa-floppy-disk"></i> セーブスロット選択'
+    : '<i class="fa-solid fa-folder-open"></i> ロードスロット選択';
+
+  renderSaveSlots();
+  document.getElementById('jsonTransferArea').value = '';
+  document.getElementById('modalSaveLoad').classList.remove('hidden');
+}
+
+function closeSaveLoadModal() {
+  returnTitleAfterSave = false;
+  document.getElementById('modalSaveLoad').classList.add('hidden');
+}
+
+function readSaveSlots() {
+  try {
+    const raw = localStorage.getItem(STORAGE_SLOTS_KEY);
+    return raw ? JSON.parse(raw) : [null, null, null];
+  } catch (e) {
+    return [null, null, null];
+  }
+}
+
+function writeSaveSlots(slots) {
+  try {
+    localStorage.setItem(STORAGE_SLOTS_KEY, JSON.stringify(slots));
+  } catch (e) {
+    showToast('ブラウザ保存領域への書き込みに失敗しました。JSON出力をご利用ください。', 'error');
+  }
+}
+
+function renderSaveSlots() {
+  const slots = readSaveSlots();
+  const container = document.getElementById('saveSlotsContainer');
+  container.innerHTML = '';
+
+  for (let i = 0; i < 3; i += 1) {
+    const slot = slots[i];
+    const row = document.createElement('div');
+    row.className = 'p-4 rounded-xl bg-slate-900/90 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+
+    if (!slot) {
+      row.innerHTML = `
+        <div>
+          <div class="text-xs font-bold text-slate-500">SLOT 0${i + 1}</div>
+          <div class="text-sm text-slate-400 italic mt-0.5">空きスロット</div>
+        </div>
+        <div>
+          ${saveLoadModalMode === 'save'
+            ? `<button type="button" onclick="saveGameToSlot(${i})" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer">ここにセーブ</button>`
+            : `<button type="button" disabled class="px-4 py-2 rounded-lg bg-slate-800 text-slate-600 text-xs cursor-not-allowed">データなし</button>`
+          }
+        </div>
+      `;
+    } else {
+      const prefix = slot.state.mode === 'final' ? '最終編：' : '';
+      row.innerHTML = `
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-amber-400">SLOT 0${i + 1}</span>
+            <span class="text-[11px] text-slate-400">${escapeHtml(slot.savedAt || '')}</span>
+          </div>
+          <div class="font-serif-jp font-bold text-base text-white mt-0.5">
+            ${escapeHtml(slot.state.eraName)} <span class="text-sky-400 text-sm ml-1">${prefix}第${slot.state.turn}ターン</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-0.5">${escapeHtml(slot.state.location || '')}</div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          ${saveLoadModalMode === 'save'
+            ? `<button type="button" onclick="saveGameToSlot(${i})" class="px-3.5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer">上書きセーブ</button>`
+            : `<button type="button" onclick="loadGameFromSlot(${i})" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs cursor-pointer">ロードして再開</button>`
+          }
+          <button type="button" onclick="deleteSaveSlot(${i})" class="px-2.5 py-2 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-400 hover:text-rose-300 text-xs cursor-pointer" title="削除">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `;
+    }
+    container.appendChild(row);
+  }
+}
+
+function saveGameToSlot(index) {
+  if (!gameState) {
+    showToast('ゲームプレイ中のみセーブできます。', 'info');
+    return;
+  }
+  const slots = readSaveSlots();
+  const now = new Date();
+  const stamp = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  slots[index] = {
+    savedAt: stamp,
+    progress: JSON.parse(JSON.stringify(progressData)),
+    state: JSON.parse(JSON.stringify(gameState))
+  };
+  writeSaveSlots(slots);
+  renderSaveSlots();
+  showToast(`スロット 0${index + 1} にセーブしました！`, 'success');
+
+  if (returnTitleAfterSave) {
+    forceReturnToTitle();
+  }
+}
+
+function loadGameFromSlot(index) {
+  const slots = readSaveSlots();
+  const entry = slots[index];
+  if (!entry || !entry.state) return;
+
+  cancelAllAsyncWork();
+  gameState = JSON.parse(JSON.stringify(entry.state));
+  if (entry.progress) {
+    progressData = { ...progressData, ...entry.progress };
+    saveProgressData();
+    updateTypewriterLabel();
+  }
+
+  closeSaveLoadModal();
+  showScreen('screenGame');
+  setActionControlsDisabled(false);
+  updateGameScreen(false);
+  showToast(`スロット 0${index + 1} から再開しました！`, 'success');
+}
+
+function deleteSaveSlot(index) {
+  const slots = readSaveSlots();
+  slots[index] = null;
+  writeSaveSlots(slots);
+  renderSaveSlots();
+  showToast(`スロット 0${index + 1} を削除しました。`, 'info');
+}
+
+function exportSaveToJson() {
+  const payload = {
+    app: 'CHRONOS_NEXUS',
+    progress: progressData,
+    state: gameState
+  };
+  document.getElementById('jsonTransferArea').value = JSON.stringify(payload);
+  showToast('セーブデータをJSONに出力しました。', 'success');
+}
+
+function copySaveJson() {
+  const area = document.getElementById('jsonTransferArea');
+  if (!area.value.trim()) {
+    exportSaveToJson();
+  }
+  area.select();
+  document.execCommand('copy');
+  showToast('JSONデータをコピーしました。', 'success');
+}
+
+function importSaveFromJson() {
+  const raw = document.getElementById('jsonTransferArea').value.trim();
+  if (!raw) {
+    showToast('復元するJSONデータを貼り付けてください。', 'info');
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed.state || !parsed.state.turn) {
+      throw new Error('Invalid save schema');
+    }
+    cancelAllAsyncWork();
+    gameState = parsed.state;
+    if (parsed.progress) {
+      progressData = { ...progressData, ...parsed.progress };
+      saveProgressData();
+      updateTypewriterLabel();
+    }
+    closeSaveLoadModal();
+    showScreen('screenGame');
+    setActionControlsDisabled(false);
+    updateGameScreen(false);
+    showToast('JSONデータからゲームを復元しました！', 'success');
+  } catch (e) {
+    showToast('JSONデータの形式が正しくありません。', 'error');
+  }
+}
+
+// ============================================================================
+// 8. トースト＆XSSエスケープ
+// ============================================================================
+function showToast(msg, level = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  let colorCls = 'border-sky-500 text-sky-200';
+  let iconName = 'fa-circle-info text-sky-400';
+  if (level === 'success') {
+    colorCls = 'border-amber-400 text-amber-200';
+    iconName = 'fa-circle-check text-amber-400';
+  } else if (level === 'error') {
+    colorCls = 'border-rose-500 text-rose-200';
+    iconName = 'fa-circle-exclamation text-rose-400';
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `pointer-events-auto glass-panel px-4 py-3 rounded-xl border ${colorCls} shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-2.5 transition-all duration-300`;
+  toast.innerHTML = `<i class="fa-solid ${iconName}"></i><span>${escapeHtml(msg)}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 300);
+  }, 2800);
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>
